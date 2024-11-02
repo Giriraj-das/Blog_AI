@@ -4,24 +4,23 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
 
-from api import router as api_router
-from core.config import settings
-from core.models import db_helper
+# from api import router as api_router
+from config import settings
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup
     yield
-    # Shutdown
-    await db_helper.dispose()
 
 
 main_app = FastAPI(
     lifespan=lifespan,
     default_response_class=ORJSONResponse,
+    title='Blog_AI',
+    description='FastAPI, PostgreSQL, SQLAlchemy(v2), Docker, Pytest, Google AI API (checks posts and comments for '
+                'profanity)',
 )
-main_app.include_router(api_router)
+# main_app.include_router(api_router)
 
 if __name__ == '__main__':
     uvicorn.run(
