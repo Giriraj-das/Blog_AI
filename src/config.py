@@ -7,14 +7,9 @@ class RunConfig(BaseModel):
     port: str = 8000
 
 
-class ApiV1Prefix(BaseModel):
-    prefix: str = '/v1'
-    users: str = '/users'
-
-
-class ApiPrefix(BaseModel):
-    prefix: str = '/api'
-    v1: ApiV1Prefix = ApiV1Prefix()
+class Prefix(BaseModel):
+    post: str = '/posts'
+    comment: str = '/comments'
 
 
 class DatabaseConfig(BaseModel):
@@ -33,16 +28,29 @@ class DatabaseConfig(BaseModel):
     }
 
 
+class DatabaseTestConfig(BaseModel):
+    url: str
+    echo: bool = False
+
+
+class DockerConfig(BaseModel):
+    pg_user: str
+    pg_password: str
+    pg_db: str
+    image: str
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=('.env.template', '.env'),  # value of next parameter overrides value previous one
+        env_file=('.env', '.env.dev', '../.env.dev'),  # value of next parameter overrides value previous one
         case_sensitive=False,
         env_nested_delimiter='__',
-        env_prefix='APP_CONFIG__',
     )
     run: RunConfig = RunConfig()
-    api: ApiPrefix = ApiPrefix()
+    prefix: Prefix = Prefix()
     db: DatabaseConfig
+    db_test: DatabaseTestConfig
+    docker: DockerConfig
 
 
 settings = Settings()
