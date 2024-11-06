@@ -28,7 +28,6 @@ class UsersSchema(UserBaseSchema):
     id: int
 
 
-class UserSchema(UserBaseSchema):
-    id: int
+class UserSchema(UsersSchema):
     is_active: bool = True
     created_at: datetime
