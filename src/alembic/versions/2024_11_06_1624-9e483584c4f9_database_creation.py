@@ -1,8 +1,8 @@
 """Database creation
 
-Revision ID: 167fc5e842c8
+Revision ID: 9e483584c4f9
 Revises: 
-Create Date: 2024-11-03 13:16:23.220891
+Create Date: 2024-11-06 16:24:50.866008
 
 """
 
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = "167fc5e842c8"
+revision: str = "9e483584c4f9"
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -37,6 +37,12 @@ def upgrade() -> None:
             server_default=sa.text("now()"),
             nullable=False,
         ),
+        sa.Column(
+            "updated_at",
+            sa.TIMESTAMP(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
         sa.Column("id", sa.Integer(), nullable=False),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_users")),
         sa.UniqueConstraint("email", name=op.f("uq_users_email")),
@@ -47,6 +53,12 @@ def upgrade() -> None:
         sa.Column("content", sa.TEXT(), nullable=False),
         sa.Column(
             "created_at",
+            sa.TIMESTAMP(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.Column(
+            "updated_at",
             sa.TIMESTAMP(timezone=True),
             server_default=sa.text("now()"),
             nullable=False,
@@ -63,6 +75,12 @@ def upgrade() -> None:
         sa.Column("content", sa.TEXT(), nullable=False),
         sa.Column(
             "created_at",
+            sa.TIMESTAMP(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.Column(
+            "updated_at",
             sa.TIMESTAMP(timezone=True),
             server_default=sa.text("now()"),
             nullable=False,
