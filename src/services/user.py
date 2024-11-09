@@ -8,9 +8,6 @@ from services import BaseService
 
 
 class UserService(BaseService[UserCRUD]):
-    async def create_user(self, user_data: UserCreateSchema):
-        user_data.password = self.__hash_password(user_data.password)
-        return await self.crud.create_user(user_data=user_data)
 
     async def get_users(self):
         return await self.crud.get_users()
@@ -25,7 +22,7 @@ class UserService(BaseService[UserCRUD]):
 
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Product {user_id} not found!",
+            detail=f"User {user_id} not found!",
         )
 
     async def update_user(
