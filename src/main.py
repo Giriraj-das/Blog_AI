@@ -4,8 +4,11 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
 
-from views import router
-from config import settings
+from auth import router as auth_router
+from user import router as user_router
+# from post import router as post_router
+# from comment import router as comment_router
+from core.config import settings
 
 
 @asynccontextmanager
@@ -20,7 +23,10 @@ main_app = FastAPI(
     description='FastAPI, PostgreSQL, SQLAlchemy(v2), Docker, Pytest, Google AI API (checks posts and comments for '
                 'profanity)',
 )
-main_app.include_router(router)
+main_app.include_router(auth_router)
+main_app.include_router(user_router)
+# main_app.include_router(post_router)
+# main_app.include_router(comment_router)
 
 if __name__ == '__main__':
     uvicorn.run(
