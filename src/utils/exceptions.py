@@ -22,3 +22,10 @@ class AuthException:
             status_code=status.HTTP_403_FORBIDDEN,
             detail=detail,
         )
+
+    @staticmethod
+    def not_found(detail: str = '404. Not_found') -> HTTPException:
+        return HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=detail,
+        )

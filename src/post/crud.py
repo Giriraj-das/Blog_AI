@@ -1,36 +1,41 @@
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from comment.crud import BaseCRUD
-from models import Post
+from core.models import Post
 from post.schemas import PostCreateSchema, PostUpdateSchema, PostUpdatePartialSchema
 
 
-class PostCRUD(BaseCRUD):
-    async def create_post(self, post_data: PostCreateSchema) -> Post:
-        post = Post(**post_data.model_dump())
-        self.session.add(post)
-        await self.session.commit()
-        return post
+async def create_post(session: AsyncSession, post_data: PostCreateSchema) -> Post:
+    post = Post(**post_data.model_dump())
+    session.add(post)
+    await session.commit()
+    return post
 
-    async def get_posts(self) -> list[Post]:
-        stmt = select(Post).order_by(Post.id)
-        result = await self.session.scalars(stmt)
-        return list(result.all())
 
-    async def get_post(self, post_id: int) -> Post | None:
-        return await self.session.get(Post, post_id)
+async def get_posts(session: AsyncSession, user_id: int) -> list[Post]:
+    stmt = select(Post).where(Post.user_id == user_id).order_by(Post.id)
+    result = await session.scalars(stmt)
+    return list(result.all())
 
-    async def update_post(
-            self,
-            post: Post,
-            post_data: PostUpdateSchema | PostUpdatePartialSchema,
-            partial: bool = False,
-    ) -> Post:
-        for name, value in post_data.model_dump(exclude_unset=partial).items():
-            setattr(post, name, value)
-        await self.session.commit()
-        return post
 
-    async def delete_post(self, post: Post) -> None:
-        await self.session.delete(post)
-        await self.session.commit()
+async def get_post(session: AsyncSession, user_id: int, post_id: int) -> Post | None:
+    stmt = select(Post).where(Post.user_id == user_id, Post.id == post_id)
+    result = await session.scalar(stmt)
+    return result
+
+
+async def update_post(
+        session: AsyncSession,
+        post: Post,
+        post_data: PostUpdateSchema | PostUpdatePartialSchema,
+        partial: bool = False,
+) -> Post:
+    for name, value in post_data.model_dump(exclude_unset=partial).items():
+        setattr(post, name, value)
+    await session.commit()
+    return post
+
+
+async def delete_post(session: AsyncSession, post: Post) -> None:
+    await session.delete(post)
+    await session.commit()

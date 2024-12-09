@@ -1,41 +1,50 @@
-# from fastapi import HTTPException, status
-#
-# from models import Post
-# from crud import PostCRUD
-# from post.schemas import PostCreateSchema, PostUpdatePartialSchema
-# from services import BaseService
-#
-#
-# async def create_post(self, post_data: PostCreateSchema):
-#     return await self.crud.create_post(post_data=post_data)
-#
-#
-# async def get_posts(self):
-#     return await self.crud.get_posts()
-#
-#
-# async def post_by_id(
-#         self,
-#         post_id: int,
-# ) -> Post:
-#     post = await self.crud.get_post(post_id=post_id)
-#     if post:
-#         return post
-#
-#     raise HTTPException(
-#         status_code=status.HTTP_404_NOT_FOUND,
-#         detail=f"Post {post_id} not found!",
-#     )
-#
-# # async def update_post(
-# #         self,
-# #         post_id: int,
-# #         post_data: PostUpdatePartialSchema,
-# #         partial: bool,
-# # ):
-# #     post = await self.post_by_id(post_id=post_id)
-# #     return await self.crud.update_post(post=post, post_data=post_data, partial=partial)
-# #
-# # async def delete_post(self, post_id: int):
-# #     post = await self.post_by_id(post_id=post_id)
-# #     return await self.crud.delete_post(post=post)
+from fastapi import Depends, Path
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from auth.services import get_current_active_auth_user_info
+from core.models import Post, db_helper
+from post import crud
+from post.schemas import PostCreateRequestSchema, PostCreateSchema, PostUpdatePartialSchema
+from utils import AuthException
+
+
+async def create_post(
+        post_data: PostCreateRequestSchema,
+        user_auth_info: dict = Depends(get_current_active_auth_user_info),
+        session: AsyncSession = Depends(db_helper.scoped_session_dependency),
+) -> Post:
+    post_data_with_user: PostCreateSchema = PostCreateSchema(**post_data.dict(), user_id=user_auth_info['sub'])
+    return await crud.create_post(session=session, post_data=post_data_with_user)
+
+
+async def get_posts(
+        user_auth_info: dict = Depends(get_current_active_auth_user_info),
+        session: AsyncSession = Depends(db_helper.scoped_session_dependency),
+) -> list[Post]:
+    return await crud.get_posts(session=session, user_id=user_auth_info['sub'])
+
+
+async def get_post(
+        post_id: int = Path,
+        user_auth_info: dict = Depends(get_current_active_auth_user_info),
+        session: AsyncSession = Depends(db_helper.scoped_session_dependency),
+) -> Post:
+    post: Post | None = await crud.get_post(session=session, user_id=user_auth_info['sub'], post_id=post_id)
+    if post:
+        return post
+    raise AuthException.not_found(detail=f'Post {post_id} not found!')
+
+
+async def update_post(
+        post_data: PostUpdatePartialSchema,
+        post: Post = Depends(get_post),
+        session: AsyncSession = Depends(db_helper.scoped_session_dependency),
+) -> Post:
+    return await crud.update_post(session=session, post=post, post_data=post_data, partial=True)
+
+
+async def delete_post(
+        post: Post = Depends(get_post),
+        session: AsyncSession = Depends(db_helper.scoped_session_dependency),
+):
+    await crud.delete_post(session=session, post=post)

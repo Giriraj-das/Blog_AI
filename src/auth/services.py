@@ -1,7 +1,7 @@
 from datetime import timedelta
 from fastapi import Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from jwt.exceptions import InvalidTokenError
+from jwt.exceptions import InvalidTokenError, ExpiredSignatureError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.config import settings
@@ -23,6 +23,8 @@ def get_current_token_payload(
     token: str = credentials.credentials
     try:
         payload: dict = decode_jwt(token=token)
+    except ExpiredSignatureError:
+        raise AuthException.unauthorized(detail='Token has expired')
     except InvalidTokenError:
         raise AuthException.unauthorized(detail='Invalid token error')
     return payload
@@ -44,24 +46,19 @@ async def get_user_by_token_sub(
 def validate_token_type(
         payload: dict,
         token_type: str,
-) -> bool:
+) -> None:
     current_token_type: str | None = payload.get('type')
-    if current_token_type == token_type:
-        return True
-    raise AuthException.unauthorized(
-        detail=f'Invalid token type {current_token_type!r} expected {token_type!r}'
-    )
+    if current_token_type != token_type:
+        raise AuthException.unauthorized(
+            detail=f'Invalid token type {current_token_type!r} expected {token_type!r}'
+        )
 
 
 async def get_current_active_auth_user_info(
         payload: dict = Depends(get_current_token_payload),
-):
+) -> dict:
     validate_token_type(payload=payload, token_type=ACCESS_TOKEN_TYPE)
-    return {
-        'username': payload.get('username'),
-        'email': payload.get('email'),
-        'issued_in_at': payload.get('iat'),
-    }
+    return payload
 
 
 async def generate_access_token_by_refresh(

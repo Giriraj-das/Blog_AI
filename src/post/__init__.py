@@ -1,5 +1,5 @@
 __all__ = (
-    # 'router',
+    'router',
 )
 
-# from .views import router
+from .views import router

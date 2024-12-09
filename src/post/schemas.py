@@ -8,6 +8,10 @@ class PostBaseSchema(BaseModel):
     content: str
 
 
+class PostCreateRequestSchema(PostBaseSchema):
+    pass
+
+
 class PostCreateSchema(PostBaseSchema):
     user_id: int
 
@@ -28,3 +32,4 @@ class PostsSchema(PostBaseSchema):
 class PostSchema(PostsSchema):
     user_id: int
     created_at: datetime
+    updated_at: datetime
