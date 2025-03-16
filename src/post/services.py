@@ -13,7 +13,7 @@ async def create_post(
         user_auth_info: dict = Depends(get_current_active_auth_user_info),
         session: AsyncSession = Depends(db_helper.scoped_session_dependency),
 ) -> Post:
-    post_data_with_user: PostCreateSchema = PostCreateSchema(**post_data.dict(), user_id=user_auth_info['sub'])
+    post_data_with_user: PostCreateSchema = PostCreateSchema(**post_data.model_dump(), user_id=user_auth_info['sub'])
     return await crud.create_post(session=session, post_data=post_data_with_user)
 
 

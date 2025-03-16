@@ -13,7 +13,7 @@ async def create_post(session: AsyncSession, post_data: PostCreateSchema) -> Pos
 
 
 async def get_posts(session: AsyncSession, user_id: int) -> list[Post]:
-    stmt = select(Post).where(Post.user_id == user_id).order_by(Post.id)
+    stmt = select(Post).where(Post.user_id == user_id).order_by(Post.created_at)
     result = await session.scalars(stmt)
     return list(result.all())
 
