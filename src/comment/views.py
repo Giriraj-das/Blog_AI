@@ -1,59 +1,52 @@
-# from fastapi import APIRouter, status, Depends
-# from sqlalchemy.ext.asyncio import AsyncSession
-#
-# from config import settings
-# from crud import CommentCRUD
-# from core import db_helper
-# from comment.schemas import CommentSchema, CommentsSchema, CommentCreateSchema, CommentUpdatePartialSchema
-# from services import CommentService
-#
-# router = APIRouter(prefix=settings.prefix.comment, tags=['Comments'])
-#
-#
-# @router.post('', response_model=CommentSchema, status_code=status.HTTP_201_CREATED)
-# async def create_comment(
-#         comment_data: CommentCreateSchema,
-#         session: AsyncSession = Depends(db_helper.scoped_session_dependency)
-# ):
-#     comment_service = CommentService(CommentCRUD(session=session))
-#     return await comment_service.create_comment(comment_data=comment_data)
-#
-#
-# @router.get('', response_model=list[CommentsSchema])
-# async def get_comments(
-#         session: AsyncSession = Depends(db_helper.scoped_session_dependency),
-# ):
-#     comment_service = CommentService(CommentCRUD(session=session))
-#     return await comment_service.get_comments()
-#
-#
-# @router.get('/{comment_id}', response_model=CommentSchema)
-# async def get_comment(
-#         comment_id: int,
-#         session: AsyncSession = Depends(db_helper.scoped_session_dependency),
-# ):
-#     comment_service = CommentService(CommentCRUD(session=session))
-#     return await comment_service.comment_by_id(comment_id=comment_id)
-#
-#
-# @router.patch("/{comment_id}")
-# async def update_comment(
-#         comment_id: int,
-#         comment_data: CommentUpdatePartialSchema,
-#         session: AsyncSession = Depends(db_helper.scoped_session_dependency),
-# ):
-#     comment_service = CommentService(CommentCRUD(session=session))
-#     return await comment_service.update_comment(
-#         comment_id=comment_id,
-#         comment_data=comment_data,
-#         partial=True,
-#     )
-#
-#
-# @router.delete("/{comment_id}", status_code=status.HTTP_204_NO_CONTENT)
-# async def delete_comment(
-#         comment_id: int,
-#         session: AsyncSession = Depends(db_helper.scoped_session_dependency),
-# ) -> None:
-#     comment_service = CommentService(CommentCRUD(session=session))
-#     await comment_service.delete_comment(comment_id=comment_id)
+from fastapi import APIRouter, status, Depends
+
+from comment import services
+from core.config import settings
+from comment.schemas import CommentSchema, CommentsSchema, CommentCreateSchema, CommentUpdatePartialSchema
+from core.models import Comment
+
+router = APIRouter(prefix=settings.prefix.comment, tags=['Comments'])
+
+
+@router.post('', response_model=CommentSchema, status_code=status.HTTP_201_CREATED)
+async def create_comment(
+        comment: Comment = Depends(services.create_comment)
+):
+    return comment
+
+
+@router.get('', response_model=list[CommentsSchema])
+async def get_comments_by_user(
+        comments: list[Comment] = Depends(services.get_comments_by_user)
+):
+    return comments
+
+
+@router.get('/post-comments/{post_id}', response_model=list[CommentSchema])
+async def get_comments_by_post(
+    comments: list[Comment] = Depends(services.get_comments_by_post)
+):
+    return comments
+
+
+@router.get('/{comment_id}', response_model=CommentSchema)
+async def get_comment_by_id(
+        comment: Comment = Depends(services.get_comment_by_id)
+):
+    return comment
+
+
+@router.patch('/{comment_id}')
+async def update_comment(
+        comment: Comment = Depends(services.update_comment)
+):
+    return comment
+
+
+@router.delete(
+    '/{comment_id}',
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(services.delete_comment)],
+)
+async def delete_comment() -> None:
+    pass

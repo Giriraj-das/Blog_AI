@@ -7,9 +7,12 @@ class CommentBaseSchema(BaseModel):
     content: str
 
 
-class CommentCreateSchema(CommentBaseSchema):
-    user_id: int
+class CommentCreateRequestSchema(CommentBaseSchema):
     post_id: int
+
+
+class CommentCreateSchema(CommentCreateRequestSchema):
+    user_id: int
 
 
 class CommentUpdateSchema(CommentBaseSchema):
@@ -28,3 +31,4 @@ class CommentSchema(CommentsSchema):
     user_id: int
     post_id: int
     created_at: datetime
+    updated_at: datetime
